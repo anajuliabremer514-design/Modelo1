@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Cotas — João Bearari</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F5F2ED;
+    --surface:   #FFFFFF;
+    --border:    #E0DBD2;
+    --text:      #1A1714;
+    --muted:     #8A847A;
+    --hint:      #B8B2A8;
+    --blue:      #1A4F8A;
+    --blue-light:#EAF1F9;
+    --green:     #1A6645;
+    --green-light:#E8F4EE;
+    --amber:     #7A4A0A;
+    --amber-light:#FAF0E0;
+    --accent:    #C8A96E;
+    --radius:    12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2.5rem 1.5rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .wrapper {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+
+  .metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hint);
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+  }
+
+  .metric-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .card-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .card-desc {
+    font-size: 0.75rem;
+    color: var(--hint);
+    margin-bottom: 1rem;
+    padding-left: 20px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .slider-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    min-width: 96px;
+    font-weight: 400;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--border);
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  .slider-val {
+    font-size: 0.8rem;
+    font-weight: 500;
+    min-width: 88px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  .cota-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+  }
+
+  .cota-label-sm {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--hint);
+    font-weight: 500;
+  }
+
+  .cota-pct {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+  }
+
+  .bar-wrap {
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.35s cubic-bezier(.4,0,.2,1);
+  }
+
+  .note {
+    font-size: 0.72rem;
+    color: var(--hint);
+    border-left: 2px solid var(--border);
+    padding-left: 10px;
+    line-height: 1.7;
+    margin-top: 1.25rem;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #F0EAE0;
+    color: var(--amber);
+    border: 1px solid #E8D9C0;
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.6rem; }
+    .slider-label { min-width: 72px; }
+    .slider-val { min-width: 72px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header-row">
+    <div>
+      <h1>Calculadora de cotas</h1>
+      <p class="subtitle">Proposta de sociedade — Academia</p>
+    </div>
+    <span class="badge">Modelo 1 — aporte avaliado</span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Capital social total</div>
+      <div class="metric-value" id="total-val">R$ 0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Maior participação</div>
+      <div class="metric-value" id="maior-val">—</div>
+    </div>
+  </div>
+
+  <!-- Sócio 1: João Bearari -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot" style="background:#1A4F8A;"></span>
+      <span class="card-name">João Bearari — imóvel reformado</span>
+    </div>
+    <p class="card-desc">Terreno + estrutura reformada. Valor definido por laudo ou avaliação de mercado.</p>
+    <div class="slider-row">
+      <span class="slider-label">Valor do imóvel</span>
+      <input type="range" id="s1" min="100" max="2000" step="10" value="800" oninput="recalc()">
+      <span class="slider-val" id="s1v">R$ 800 mil</span>
+    </div>
+    <div class="cota-footer">
+      <span class="cota-label-sm">Participação</span>
+      <span class="cota-pct" style="color:#1A4F8A;" id="c1">—</span>
+    </div>
+    <div class="bar-wrap"><div class="bar" id="b1" style="background:#1A4F8A;width:0%"></div></div>
+  </div>
+
+  <!-- Sócio 2: Jiu-jitsu -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot" style="background:#1A6645;"></span>
+      <span class="card-name">Sócio jiu-jitsu — equipamentos + obras</span>
+    </div>
+    <p class="card-desc">Tatames, espelhos, sacos, ar-condicionado, obras específicas etc.</p>
+    <div class="slider-row">
+      <span class="slider-label">Equipamentos</span>
+      <input type="range" id="s2a" min="10" max="500" step="5" value="150" oninput="recalc()">
+      <span class="slider-val" id="s2av">R$ 150 mil</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Obras / ajustes</span>
+      <input type="range" id="s2b" min="0" max="200" step="5" value="50" oninput="recalc()">
+      <span class="slider-val" id="s2bv">R$ 50 mil</span>
+    </div>
+    <div class="cota-footer">
+      <span class="cota-label-sm">Participação</span>
+      <span class="cota-pct" style="color:#1A6645;" id="c2">—</span>
+    </div>
+    <div class="bar-wrap"><div class="bar" id="b2" style="background:#1A6645;width:0%"></div></div>
+  </div>
+
+  <!-- Sócio 3: Crossfit -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot" style="background:#7A4A0A;"></span>
+      <span class="card-name">Sócio crossfit — equipamentos + obras</span>
+    </div>
+    <p class="card-desc">Racks, barras, anilhas, caixotes, cordas, piso emborrachado etc.</p>
+    <div class="slider-row">
+      <span class="slider-label">Equipamentos</span>
+      <input type="range" id="s3a" min="10" max="500" step="5" value="180" oninput="recalc()">
+      <span class="slider-val" id="s3av">R$ 180 mil</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Obras / ajustes</span>
+      <input type="range" id="s3b" min="0" max="200" step="5" value="30" oninput="recalc()">
+      <span class="slider-val" id="s3bv">R$ 30 mil</span>
+    </div>
+    <div class="cota-footer">
+      <span class="cota-label-sm">Participação</span>
+      <span class="cota-pct" style="color:#7A4A0A;" id="c3">—</span>
+    </div>
+    <div class="bar-wrap"><div class="bar" id="b3" style="background:#7A4A0A;width:0%"></div></div>
+  </div>
+
+  <p class="note">Simulação para referência. No contrato real, cada aporte precisa ser comprovado — imóvel por laudo ou escritura, equipamentos por notas fiscais ou laudo de bens usados.</p>
+
+</div>
+
+<script>
+function fmt(v) {
+  return 'R$\u00a0' + v.toLocaleString('pt-BR') + '\u00a0mil';
+}
+function recalc() {
+  var s1  = parseInt(document.getElementById('s1').value);
+  var s2a = parseInt(document.getElementById('s2a').value);
+  var s2b = parseInt(document.getElementById('s2b').value);
+  var s3a = parseInt(document.getElementById('s3a').value);
+  var s3b = parseInt(document.getElementById('s3b').value);
+  var v2 = s2a + s2b, v3 = s3a + s3b;
+  var total = s1 + v2 + v3;
+  var p1 = total > 0 ? (s1 / total * 100) : 0;
+  var p2 = total > 0 ? (v2 / total * 100) : 0;
+  var p3 = total > 0 ? (v3 / total * 100) : 0;
+  document.getElementById('s1v').textContent  = fmt(s1);
+  document.getElementById('s2av').textContent = fmt(s2a);
+  document.getElementById('s2bv').textContent = fmt(s2b);
+  document.getElementById('s3av').textContent = fmt(s3a);
+  document.getElementById('s3bv').textContent = fmt(s3b);
+  document.getElementById('total-val').textContent = fmt(total);
+  document.getElementById('c1').textContent = p1.toFixed(1) + '%';
+  document.getElementById('c2').textContent = p2.toFixed(1) + '%';
+  document.getElementById('c3').textContent = p3.toFixed(1) + '%';
+  document.getElementById('b1').style.width = p1.toFixed(1) + '%';
+  document.getElementById('b2').style.width = p2.toFixed(1) + '%';
+  document.getElementById('b3').style.width = p3.toFixed(1) + '%';
+  var nomes = ['João Bearari', 'Jiu-jitsu', 'Crossfit'];
+  var pcts  = [p1, p2, p3];
+  var max   = Math.max.apply(null, pcts);
+  document.getElementById('maior-val').textContent = nomes[pcts.indexOf(max)] + ' (' + max.toFixed(1) + '%)';
+}
+recalc();
+</script>
+</body>
+</html>
